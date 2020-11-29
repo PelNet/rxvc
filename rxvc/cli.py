@@ -117,6 +117,33 @@ def volume(ctx, vol):
         click.echo(avr.volume)
 
 
+# This command controls the mute function of the receiver and returns
+# the current state if no argument is provided.
+@cli.command(context_settings=CTX_SETTINGS)
+@click.argument('mute', required=False)
+@click.pass_context
+def mute(ctx, mute):
+    """Mute the audio output or return the status. If an argument is
+    passed it should be 'on' or 'off', otherwise the current status
+    is returned.
+
+    """
+    avr = ctx.obj['avr']
+    status = ctx.obj['avr'].basic_status
+    if mute:
+        mute = mute.lower()
+        try:
+            avr.mute = mute == 'on'
+            click.echo(mute)
+        except ReponseException as e:
+            if "Mute" in str(e):
+                msg = "Mute command failed."
+                err = click.style(msg, fg='red')
+                click.echo(err, err=True)
+    else:
+        print(("Muted: {muted}").format(
+                   muted=status.mute))
+
 @cli.command(context_settings=CTX_SETTINGS)
 @click.argument('state', required=False)
 @click.pass_context
