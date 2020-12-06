@@ -94,20 +94,23 @@ def input(ctx, input):
 @click.argument("state", required=True)
 @click.pass_context
 def output(ctx, output, state):
-    """See the current receiver output or set it if passed an output
-    and a state as arguments that are valid for the receiver.
+    """Set the outputs of the receiver on or off.
 
     """
     avr = ctx.obj['avr']
-    if (state == 'on'): outstate = True
-    if (state == 'off'): outstate = False
-    if output in avr.outputs:
-        print("Setting receiver output {0} to {1}".format(output, state))
-        avr.enable_output(output, outstate)
+    if state in ['on', 'off']:
+        if (state == 'on'): outstate = True
+        if (state == 'off'): outstate = False
+        if output in avr.outputs:
+            print("Setting receiver output {0} to {1}".format(output, state))
+            avr.enable_output(output, outstate)
+        else:
+            print(("That's not a valid output. Run `rxvc outputs' to"
+                   "get a list of them."))
     else:
-        print(("That's not a valid output. Run `rxvc outputs' to"
-               "get a list of them."))
-
+        click.echo(
+            click.style("State must be on or off", fg='red')
+        )
 
 @cli.command(context_settings=CTX_SETTINGS)
 @click.pass_context
@@ -363,8 +366,8 @@ def playback(ctx, command):
             if command == 'play': avr.play()
             if command == 'stop': avr.stop()
             if command == 'pause': avr.pause()
-            if command == 'skip_f': avr.next()
-            if command == 'skip_r': avr.previous()
+            if command == 'next': avr.next()
+            if command == 'previous': avr.previous()
         else:
             print(("That's not a valid playback control command. Valid commands"
                    "include 'play', 'stop', 'pause', 'next' and 'previous'."))
