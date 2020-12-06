@@ -354,7 +354,7 @@ def menu(ctx, command):
     """See the current receiver menu status or operate it.
 
     """
-    if not ctx.obj['avr'].menu_status():
+    if not ctx.obj['avr'].menu_status().ready:
         print("Menu is currently not available.")
         return
 
@@ -369,14 +369,14 @@ def menu(ctx, command):
             if command == 'select': avr.menu_sel()
             if command == 'return': avr.menu_return()
         else:
-            print(("That's not a valid menu control command. Valid commands"
+            print(("That's not a valid menu control command. Valid commands "
                    "include 'up', 'down', 'left', 'right', 'select' and 'return'."))
+            return
 
     status = ctx.obj['avr'].menu_status()
     print(("\nReady: {ready}\n"
            "Layer: {layer}\n"
-           "Name: {name}\n"
-           "Highlight: {current_line}\n\n"
+           "Name: {name}\n\n"
            "Total lines: {max_line}\n").format(
                ready=status.ready,
                layer=status.layer,
@@ -384,11 +384,6 @@ def menu(ctx, command):
                current_line=status.current_line,
                max_line=status.max_line))
 
-    # very dirty parsing; strips the {} off and splits by menu line. line is split by :, so
-    # that the list can be sorted and printed.
-    x = list(tuple())
-    for line in str(status.current_list)[1:(len(str(status.current_list))-1)].split(', '):
-        x.append(line.split(': '))
-    x.sort()
-    for item in x:
-        print(item[1])
+    # print lines as displayed in the web interface
+    for item in sorted(status.current_list.items()):
+        print("*  {}".format(item[1]))
