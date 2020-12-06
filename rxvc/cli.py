@@ -1,8 +1,8 @@
 """Commands for controlling a Yamaha RX-V series receiver."""
 import operator
 import click
-# Not spelling this correctly on purpose... needs fixed upstream.
-from rxv.exceptions import ReponseException
+
+from rxv.exceptions import ResponseException
 import rxvc.cache as cache
 
 CTX_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -87,6 +87,40 @@ def input(ctx, input):
                    "get a list of them."))
     else:
         print("Current input is", avr.input)
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.argument("output", required=True)
+@click.argument("state", required=True)
+@click.pass_context
+def output(ctx, output, state):
+    """See the current receiver output or set it if passed an output
+    and a state as arguments that are valid for the receiver.
+
+    """
+    avr = ctx.obj['avr']
+    if (state == 'on'): outstate = True
+    if (state == 'off'): outstate = False
+    if output in avr.outputs:
+        print("Setting receiver output {0} to {1}".format(output, state))
+        avr.enable_output(output, outstate)
+    else:
+        print(("That's not a valid output. Run `rxvc outputs' to"
+               "get a list of them."))
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.pass_context
+def outputs(ctx):
+    """List valid output names for this receiver.
+
+    These are names that can also be passed to the output command
+    when using it to set an output to a state.
+
+    """
+    avr = ctx.obj['avr']
+    for output in ctx.obj['avr'].outputs.items():
+        print('* {0}: {1}'.format(output[0], output[1]))
 
 
 # This command a little inconsistent with the input command in that
