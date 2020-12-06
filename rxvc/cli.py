@@ -248,8 +248,41 @@ def sps(ctx):
 
     """
     print("Valid surround programs for this receiver are:")
-    for sps in ctx.obj['avr'].surround_programs():
-        print('* ', sps)
+    for sp in ctx.obj['avr'].surround_programs():
+        print('* ', sp)
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.argument("zone", required=False)
+@click.pass_context
+def zone(ctx, zone):
+    """See the current receiver zone or set it if passed an 
+    argument that is a valid input for the receiver. Note that 
+    if it has spaces in it, you should wrap the whole
+    argument in quotes.
+
+    """
+    avr = ctx.obj['avr']
+    if zone:
+        if zone in avr.zones():
+            print("Setting receiver zone to {}".format(zone))
+            avr.zone = zone
+        else:
+            print(("That's not a valid zone. Run `rxvc zones'"
+                   "to get a list of them."))
+    else:
+        print(avr.zone)
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.pass_context
+def zones(ctx):
+    """List configured zone names for this receiver.
+
+    """
+    print("Configured zones for this receiver are:")
+    for zone in ctx.obj['avr'].zones():
+        print('* ', zone)
 
 
 @cli.command(context_settings=CTX_SETTINGS)
