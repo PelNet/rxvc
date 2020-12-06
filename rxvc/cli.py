@@ -144,7 +144,7 @@ def volume(ctx, vol):
         try:
             avr.volume = vol
             click.echo(avr.volume)
-        except ReponseException as e:
+        except ResponseException as e:
             if "Volume" in str(e):
                 msg = "Volume must be specified in -0.5 increments."
                 err = click.style(msg, fg='red')
@@ -170,7 +170,7 @@ def mute(ctx, mute):
         try:
             avr.mute = mute == 'on'
             click.echo(mute)
-        except ReponseException as e:
+        except ResponseException as e:
             if "Mute" in str(e):
                 msg = "Mute command failed."
                 err = click.style(msg, fg='red')
@@ -305,7 +305,7 @@ def _adjust_volume(avr, points, operation):
     try:
         avr.volume = new_vol
         click.echo(new_vol)
-    except ReponseException:
+    except ResponseException:
         click.echo(
             click.style("New volume must be out of range.",
                         fg='red')
