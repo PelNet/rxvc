@@ -53,7 +53,6 @@ def status(ctx):
                volume=status.volume,
                muted=status.mute))
 
-
 @cli.command(context_settings=CTX_SETTINGS)
 @click.pass_context
 def inputs(ctx):
@@ -75,7 +74,7 @@ def input(ctx, input):
     """See the current receiver input or set it if passed an
     argument that is a valid input for the receiver. Note that
     if it has spaces in it, you should wrap the whole argument
-    in quotes space excaping and stuff.
+    in quotes.
 
     """
     avr = ctx.obj['avr']
@@ -116,7 +115,6 @@ def volume(ctx, vol):
     else:
         click.echo(avr.volume)
 
-
 # This command controls the mute function of the receiver and returns
 # the current state if no argument is provided.
 @cli.command(context_settings=CTX_SETTINGS)
@@ -143,6 +141,7 @@ def mute(ctx, mute):
     else:
         print(("Muted: {muted}").format(
                    muted=status.mute))
+
 
 @cli.command(context_settings=CTX_SETTINGS)
 @click.argument('state', required=False)
@@ -178,6 +177,77 @@ def power(ctx, state):
     else:
         state = 'on' if avr.on else 'off'
         click.echo("Power state is {}".format(state))
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.argument("sp", required=False)
+@click.pass_context
+def sp(ctx, sp):
+    """See the current receiver surround program or set it if
+    passed an argument that is a valid input for the receiver.
+    Note that if it has spaces in it, you should wrap the whole
+    argument in quotes.
+
+    """
+    avr = ctx.obj['avr']
+    if sp:
+        if sp in avr.surround_programs():
+            print("Setting receiver surround program to {}".format(sp))
+            avr.surround_program = sp
+        else:
+            print(("That's not a valid surround program. Run `rxvc sps'"
+                   "to get a list of them."))
+    else:
+        print(avr.surround_program)
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.pass_context
+def sps(ctx):
+    """List valid surround program names for this receiver.
+
+    These are names that can also be passed to the sp command
+    when using it to select a surround program.
+
+    """
+    print("Valid surround programs for this receiver are:")
+    for sps in ctx.obj['avr'].surround_programs():
+        print('* ', sps)
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.argument("scene", required=False)
+@click.pass_context
+def scene(ctx, scene):
+    """See the current receiver scene or set it if passed an argument
+    that is a valid input for the receiver. Note that if it has spaces
+    in it, you should wrap the whole argument in quotes.
+
+    """
+    avr = ctx.obj['avr']
+    if scene:
+        if scene in avr.scenes():
+            print("Setting receiver scene to {}".format(scene))
+            avr.scene = scene
+        else:
+            print(("That's not a valid scene. Run `rxvc scenes'"
+                   "to get a list of them."))
+    else:
+        print(avr.scene)
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.pass_context
+def scenes(ctx):
+    """List valid scene names for this receiver.
+
+    These are scenes that can also be passed to the scene command
+    when using it to select a scene.
+
+    """
+    print("Valid scenes for this receiver are:")
+    for scene in ctx.obj['avr'].scenes():
+        print('* ', scene)
 
 
 # Volume inc/dev convenience commands.
@@ -239,3 +309,86 @@ def down(ctx, points):
     """
     avr = ctx.obj['avr']
     _adjust_volume(avr, points, operator.sub)
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.argument("command", required=False)
+@click.pass_context
+def playback(ctx, command):
+    """See the current receiver playback status or pass a command to it.
+
+    """
+    if not ctx.obj['avr'].is_playback_supported():
+        print("Playback controls are not available for the active input.")
+        return
+
+    avr = ctx.obj['avr']
+    if command:
+        if command in [ 'play', 'stop', 'pause', 'next', 'previous' ]:
+            print("Sending command {} to receiver".format(command))
+            if command == 'play': avr.play()
+            if command == 'stop': avr.stop()
+            if command == 'pause': avr.pause()
+            if command == 'skip_f': avr.next()
+            if command == 'skip_r': avr.previous()
+        else:
+            print(("That's not a valid playback control command. Valid commands"
+                   "include 'play', 'stop', 'pause', 'next' and 'previous'."))
+    else:
+        status = ctx.obj['avr'].play_status()
+        print(("\nPlaying: {playing}\n"
+               "Artist: {artist}\n"
+               "Album: {album}\n"
+               "Track: {song}\n"
+               "Station: {station}\n").format(
+                   playing=status.playing,
+                   artist=status.artist,
+                   album=status.album,
+                   song=status.song,
+                   station=status.station))
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.argument("command", required=False)
+@click.pass_context
+def menu(ctx, command):
+    """See the current receiver menu status or operate it.
+
+    """
+    if not ctx.obj['avr'].menu_status():
+        print("Menu is currently not available.")
+        return
+
+    avr = ctx.obj['avr']
+    if command:
+        if command in [ 'up', 'down', 'left', 'right', 'select', 'return' ]:
+            print("Sending menu command {} to receiver".format(command))
+            if command == 'up': avr.menu_up()
+            if command == 'down': avr.menu_down()
+            if command == 'left': avr.menu_left()
+            if command == 'right': avr.menu_right()
+            if command == 'select': avr.menu_sel()
+            if command == 'return': avr.menu_return()
+        else:
+            print(("That's not a valid menu control command. Valid commands"
+                   "include 'up', 'down', 'left', 'right', 'select' and 'return'."))
+
+    status = ctx.obj['avr'].menu_status()
+    print(("\nReady: {ready}\n"
+           "Layer: {layer}\n"
+           "Name: {name}\n"
+           "Highlight: {current_line}\n\n"
+           "Total lines: {max_line}\n").format(
+               ready=status.ready,
+               layer=status.layer,
+               name=status.name,
+               current_line=status.current_line,
+               max_line=status.max_line))
+
+    # very dirty parsing; strips the {} off and splits by menu line. line is split by :, so
+    # that the list can be sorted and printed.
+    x = list(tuple())
+    for line in str(status.current_list)[1:(len(str(status.current_list))-1)].split(', '):
+        x.append(line.split(': '))
+    x.sort()
+    for item in x:
+        print(item[1])
