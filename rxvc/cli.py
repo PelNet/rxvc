@@ -141,14 +141,18 @@ def volume(ctx, vol):
     """
     avr = ctx.obj['avr']
     if vol:
-        try:
-            avr.volume = vol
-            click.echo(avr.volume)
-        except ResponseException as e:
-            if "Volume" in str(e):
-                msg = "Volume must be specified in -0.5 increments."
-                err = click.style(msg, fg='red')
-                click.echo(err, err=True)
+        if float(vol) < 0:
+            try:
+                avr.volume = vol
+                click.echo(avr.volume)
+            except ResponseException as e:
+                if "Volume" in str(e):
+                    msg = "Volume must be specified in -0.5 increments."
+                    err = click.style(msg, fg='red')
+                    click.echo(err, err=True)
+        else:
+            print("Volume must be specified as a negative float in "
+                   "steps of 0.5.")
     else:
         click.echo(avr.volume)
 
@@ -256,8 +260,8 @@ def sps(ctx):
 @click.argument("zone", required=False)
 @click.pass_context
 def zone(ctx, zone):
-    """See the current receiver zone or set it if passed an 
-    argument that is a valid input for the receiver. Note that 
+    """See the current receiver zone or set it if passed an
+    argument that is a valid zone for the receiver. Note that
     if it has spaces in it, you should wrap the whole
     argument in quotes.
 
@@ -318,6 +322,32 @@ def scenes(ctx):
     print("Valid scenes for this receiver are:")
     for scene in ctx.obj['avr'].scenes():
         print('* ', scene)
+
+
+@cli.command(context_settings=CTX_SETTINGS)
+@click.option('-v', '--vol', type=click.FLOAT, required=False)
+@click.argument('delay', type=click.FLOAT, required=False)
+@click.pass_context
+def fade(ctx, vol, delay=0.5):
+    """Fade to a given volume with an optional delay between
+    increments. The delay can be specified in seconds.
+
+    """
+    avr = ctx.obj['avr']
+    if vol and (float(vol) < 0):
+        try:
+            print("Fading receiver volume to {0} with delay of {1} seconds".format(vol, delay))
+            avr.volume_fade(int(vol), float(delay))
+        except ResponseException as e:
+            print(e)
+            if "Volume" in str(e):
+                msg = "Volume must be specified in -0.5 increments."
+                err = click.style(msg, fg='red')
+                click.echo(err, err=True)
+    else:
+        print("Volume must be specified as a negative float in "
+               "steps of 0.5. Optionally, a delay can be "
+               "specified in seconds.")
 
 
 # Volume inc/dev convenience commands.
