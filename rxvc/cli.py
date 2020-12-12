@@ -62,8 +62,7 @@ def inputs(ctx):
     when using it to set an input.
 
     """
-    print("Valid input names for this receiver are:")
-    for input in ctx.obj['avr'].inputs():
+    for input in sorted(ctx.obj['avr'].inputs()):
         print('* ', input)
 
 
@@ -122,7 +121,7 @@ def outputs(ctx):
 
     """
     avr = ctx.obj['avr']
-    for output in ctx.obj['avr'].outputs.items():
+    for output in sorted(ctx.obj['avr'].outputs.items()):
         print('* {0}: {1}'.format(output[0], output[1]))
 
 
@@ -252,7 +251,7 @@ def sps(ctx):
 
     """
     print("Valid surround programs for this receiver are:")
-    for sp in ctx.obj['avr'].surround_programs():
+    for sp in sorted(ctx.obj['avr'].surround_programs()):
         print('* ', sp)
 
 
@@ -285,7 +284,7 @@ def zones(ctx):
 
     """
     print("Configured zones for this receiver are:")
-    for zone in ctx.obj['avr'].zones():
+    for zone in sorted(ctx.obj['avr'].zones()):
         print('* ', zone)
 
 
@@ -320,7 +319,7 @@ def scenes(ctx):
 
     """
     print("Valid scenes for this receiver are:")
-    for scene in ctx.obj['avr'].scenes():
+    for scene in sorted(ctx.obj['avr'].scenes()):
         print('* ', scene)
 
 
